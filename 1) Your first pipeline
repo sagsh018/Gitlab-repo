@@ -1,0 +1,134 @@
+1) Here  we are going to simulate the can assembly line to our gitlab pipeline. using below to top level stages
+    BUILD ---> TEST
+2) You can use link in README file to register on gitlab site. once register you can always go on below link and login
+    to gitlab using username and password mentioned in README file  
+    https://gitlab.com/
+3) On a welcome page og gitlab click on New project to create a New project in gitlab ==> https://gitlab.com/
+    New project >> Create Blank Project 
+    Then enter the project name on "create blank project" page as => Car-assembly-line
+    mention the description.
+    Visibility level will be private by default.
+    If you want you can initialize the repo with README file
+    Then click on Create page at the end of page.
+4) So far we have created our first project and the repo which is empty as of now. we can start adding code to this repo
+    but we are focusing here only on creating the Gitlab CI pipeline and in order to create this pipe we have to create
+    a file which will define this pipeline
+    This will be done using gitlab interface.
+5) Now on the "Car-assembly-line" repo page click on New file option near to the clone button. once you are on new file 
+    page, we have to give a name to this new file as ==> ".gitlab-ci.yml"
+    Now note that here this file be a CI pipeline instructions in Gitlab and it will be written in YAML
+6) So lets consider two major jobs in for Car 
+    a) build a Car
+        #  build a car:
+        #    script:
+        #      - mkdir build
+        #      - cd build
+        #      - touch car.txt
+        #      - echo "chassis" > car.txt
+        #      - echo "engine" > car.txt
+        #      - echo "wheels" > car.txt
+        So this is a YML script to create a build job of a car.
+        So we can add this file into our repo using commit file button at the end of page by giving commit message.
+7) now once you commit and save your above .gitlab-ci.yml file it will be automatically detected by gitlab and validate it
+    if it is found a valid CI content, it will indicate it as valid syntax and start running it.  can see the progress
+    of this pipeline on right hand upper corner of the page.
+    once it completes the progress sign will turn into a tick
+    if you click on that tick it will take you to the pipeline graphics page where it will show what all jobs are   
+    there for this pipeline and how many have ran till now successfully.
+
+    Now since we have just defined one stage "build a car" it will just show that there. and if you will hover the mouse
+    over that job it will indicate a status passed if that ran successfully
+    click on that and it will take you to the "gitlab runner" which nothing but a terminal inside gitlab, where the 
+    script which we have written will run and it will return the output back to gitlab
+
+    So gitlab runner is a tool used by Gitlab to run your jobs  and send the results back to Gitlab.
+    Here  also it will indicate job has succeded.
+8) Now lets get back to our .gitlab-ci.yml file and lets edit our file to add another job. click on edit in Gitlab
+     and add the following job to it
+     So our modified script will be like below
+    #   stages:
+    #     - build
+    #     - test
+
+    #   build the car:
+    #   stage:
+    #        build
+    #   script:
+    #     - mkdir build
+    #     - cd build
+    #     - touch car.txt
+    #     - echo 'chassis' > car.txt
+    #     - echo 'engine' > car.txt
+    #     - echo 'wheels' > car.txt
+
+    #   test the car:
+    #   stage:
+    #     test
+    #   script:
+    #     - test -f build/car.txt
+    #     - cd /build
+    #     - grep "chassis" car.txt
+    #     - grep "engine" car.txt
+    #     - grep "wheels" car.txt
+    So now we have couple of things to notice here, we have added new job here named as "test the car" and in this job we
+    are testing few things like checking whether or not file car.txt is created, and grepping few things in that file.
+    Also note that we have added extra things here like "stages" tag this is to specify what stages do we have in this
+    gitlab-ci.yml file and what will be there order of run like we have mentioned  that first build job will run then 
+    test job will run.
+    note that if we won't specify this thing here then gitlab will try to run both the jobs in parallel
+
+    Then inside the jobs we have mentioned the stage tag to show this job belongs to which stage.
+
+    Now lets commit and save it and this time try to check the progress status onr right hand upper corner of the 
+    gitlab page which will first show the progress then it will show the tick sign.
+
+    Notes
+    a) once we will click on the progress sign we will be taken to job page where we will see two jobs one is 
+        build the car and another one is test the car.
+        if will wait for some time will see that test the car has failed as we haven't mentioned in the first 
+        job "buid the car" what to do the the file created car.txt and as that jobs completed the data with the job
+        was removed. So we have to modify our jobs again and we have to add artifact in our build the car job. so the
+        script will look somewhat like below
+        #stages:
+        #  - build
+        #  - test
+
+        #build the car:
+        #   stage:
+        #       build
+        #   script:
+        #     - mkdir build
+        #     - cd build
+        #     - touch car.txt
+        #     - echo 'chassis' >> car.txt
+        #     - echo 'engine' >> car.txt
+        #     - echo 'wheels' >> car.txt
+        #   artifacts:
+        #       paths:
+        #         - build/
+        #test the car:
+        #   stage:
+        #       test
+        #   script:
+        #       - test -f build/car.txt
+        #       - cd /build
+        #       - grep "chassis" car.txt
+        #       - grep "engine" car.txt
+        #       - grep "wheels" car.txt
+        So here we have added one more tag under job build the car named as artifact which is going to save entire build/ 
+        directory as an artifact for use of future or upcoming jobs.
+        now when we save and run this time you will notice while executing test the car job gitlab code runner will download 
+        the artifact before starting the test the car job.
+        So our problem is solved now.
+
+        Also notice every time we are saving or commiting changes to our repo, this gitlab pipeline is executed.
+        This functionality remains for any other files you will add to gitlab as well.
+
+9) To see all the runs you have till now for the perticular project you can always check for pipelines option under CI/CD
+     section on left 
+    hand side of gitlab UI and there you will see all the runs listed along with there status and artifacts to download
+    if there is any.
+
+10) Suppose if you click on any one of the job run's stage let say build then it will again open the gitlab runner terminal
+    page and on that same page also you will see the artifact associated with this job on right hand side. from where you 
+    browse or run it.

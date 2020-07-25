@@ -132,3 +132,6 @@
 10) Suppose if you click on any one of the job run's stage let say build then it will again open the gitlab runner terminal
     page and on that same page also you will see the artifact associated with this job on right hand side. from where you 
     browse or run it.
+
+11) note that the artifact which is created as part of build job of car, is save spearately in gitlab and does not 
+    become a part of gitlab project. hence it is not commited inside the gitlab repo.

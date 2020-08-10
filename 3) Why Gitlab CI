@@ -1,0 +1,11 @@
+1) Simple and scalable arhitecture
+2) It follows Docker first approach, that is it is using Docker containers in order to run the Gitlab runner jobs,
+3) It run Pipeline as a code (written in gitlab-ci.yml) fi
+4) It has other features as well like, merge request with CI support, and also offers entire repository to store and fetch
+
+One thing to notice about Gitlab
+===================================
+There are two ways which we can use Gitlab  
+1) Gitlab.com ( Which is nothing but gitlab as a service and is hosted bu Gitlab)
+2) Self-managed (host your own instance on-premise or in public cloud)
+Follow the below link in order to see the plans and pricing for them.

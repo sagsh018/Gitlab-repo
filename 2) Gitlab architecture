@@ -1,0 +1,43 @@
+1) The first thing that we need is Gitlab server. Gitlab server offers the interface that allows to create repositories
+    and manage everything that is related to project.
+2) Everyhting that we do related to the project on this gitlab server will be stored in a database. So these are two main
+    jobs of gitlab server
+3) Now as sson as you create a pipeline, that pipeline will be managed by the gitlab server as well but it will be
+    delegated to gitlab runner.
+    So here basically gitlab server instruct gitlab runner to download the specific image, execute the following steps
+    mentioned in .gitlab-ci.yml file and save the artifacts if there are any.
+4) So here Gitlab server manages the entire process of gitlab runners, it instruct them but does not do the actuall 
+    running of a pipeline and that will be done by Gitlab runner.
+5) So at minimal, we do have one Gitlab server and one Gitlab runner in Gitlab architecture. but we can really scale it
+    to two, three and many more gitlab runner and scale them down back to 1 again as well, according to our own needs.
+6) Now if you will go to our job in Gitlab and got to CI/CD option in the left pane, then to pipeline option and 
+    from the existing pipeline runs. lets pick the latest successful one and click on first tick of successful run
+    and then click on the job name "build a car". This will take you to the gitlab runner terminal
+    So we can notice few thing here:
+    a) So we can clearly see that this job is ran by using gitlab runner.
+    b) by default gitlab runner is using docker image of ruby:2.5 to run this job 
+    c) Firstly its pulling that image from docker repo(docker Hub) 
+    d) Then it is going to spin up a temporary container to run the downloaded image and on that image its going to 
+        start the runner on that temp container.
+    e) So first it is initializing the git repo inside that temp container and then cloning our repo to that 
+    f) and then start doing all the steps written in gitlab-ci file one by one and also uploading artifacts if there are
+        any back to the coordinator( which is nothing but Gitlab server).
+    g) Now as soon as this job is successful, this runner is stopping this task, and the docker images will be destroyed
+        and we will never have access to this again. Thats the reason we have to explicitely store the artifacts to 
+        Gitlab server as in Gitlab runner there are temporary Docker container , which after execution of perticular
+        task gets detroyed.
+    h) The only thing which got stored are the terminal logs which we are seeing at the moment in order to inspect the 
+        things
+7) Now lets how the Gitlab runners are confirgured
+    a) Go to Project settings again in the left pane of the project main page 
+        settings >> CI/CD 
+    b) There you will find a option called as runner, expand that and we can see entire information about the runners over
+        there, like 
+    c) we can have as many runners as we want, and we can have our own specific runners as well running on our local machine
+    d) Runner can be either in active state or in paused state while not recieving any job,
+    e) there are multiple type of runner available.
+    f) currently we have used shared runner that are provided by Gitlab by default. Gitlab provide 15 runner running on
+        docker or gitlab.org
+    g) The it also offers us the specific runners for kubernetes
+    h) we can even setup the runners manually. We will see this part later.
+    

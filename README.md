@@ -8,4 +8,11 @@
 
 ## Link for basics of YAML used in this course
     https://learn.getgrav.org/16/advanced/yaml
+
+## Couse structure
+    Introduction
+    Basic CI/CD workflow
+    Gitlab CI Fundamentals
+    Advanced CI/CD workflows
+    Advanced usage and specific topics
     

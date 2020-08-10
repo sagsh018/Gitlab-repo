@@ -1,19 +1,28 @@
 stages:
-    - build
-    - test
+  - build
+  - test
 
-build:
-    stage: build
-    script:
-        - echo "Building"
-        - mkdir build
-        - touch build/info.txt
-    artifacts:
-        paths:
-            - build/
-
-test:
-    stage: test
-    script:
-        - echo "Testing"
-        - test -f "build/info.txt"
+build a car:
+  stage:
+    build
+  script:
+    - mkdir build
+    - cd build
+    - touch car.txt
+    - echo "chassis" >> car.txt
+    - echo "engine" >> car.txt
+    - echo "wheels" >> car.txt
+  artifacts:
+    path:
+      - build/
+    
+test a car:
+  stage:
+    test
+  script:
+    - test -f build/car.txt
+    - cd build
+    - grep "chassis" car.txt
+    - grep "engine" car.txt
+    - grep "wheels" car.txt
+      

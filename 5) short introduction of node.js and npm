@@ -1,0 +1,22 @@
+Node.js
+=======
+1) Node.js is a javascript runtime environment
+2) Node.js can execute javascript without using browser
+
+npm (Node Package Manager)
+==========================
+1) it is a repository of projects and has knowledge of what requirements each project has.
+2) Usually each project/Tool has other dependencies that needs to be installed 
+3) To figure out all these dependencies each project/tool needs, you just need to have npm installed and npm will do
+    the work for you.
+
+intallation of node.js
+=======================
+1) download the msi installer from below url
+    https://nodejs.org/en/download/
+2) double click on the installer downloaded and open up the installation wizard and follow the instructions
+    intall location 
+    /c/Users/Sagar/projects/Gitlab-repo
+    we are not installing extra softwares and will take care of dependencies later from below link
+    https://github.com/nodejs/node-gyp#on-windows
+    

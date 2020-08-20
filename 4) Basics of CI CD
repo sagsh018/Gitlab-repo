@@ -1,0 +1,63 @@
+1) basic CI/CD workflow we are going to follow here will be
+
+    Create a simple     ==>         Automatically build a new           ==>         Automatically deply newest 
+        website                             version                                         version
+                                    ==========================================================================
+                                                            This part will be done using 
+                                                                    Gitlab CI
+2) what is CI/CD
+    a) Continuous Integration(CI)
+        it is a Practice of continuously integrating code changes
+        After the the code is inegrated by any developer with the existing code, ensuring that the project can still
+        be built/compiled
+        Ensuring that any changes made to the repository must pass all the tests, guidlines, and code compliance standard
+        So basicallu what CI is, whenever any developer checks out to code into local repo, and perform the changes,
+        they push the changes back, those changes are integrated with the code of other developers and this continuous
+        integration happens for wvery change made in the repository.
+        CI pipeline looks like
+        =======================================================================
+        ||Devloper ==> code ==> Build ==> Code quality ==> Tests ==> Packages||
+        =======================================================================
+        So as soon as the changes to the code are made and pushed back there is this CI pipeline executed that 
+        perform the steps like building the code then checking the code quality and then performing the automatic tests
+        and finally packaging them with other code.
+    b) Continuous Delivery (CD)
+        This comes after the continuous integration, and this is to ensure that software can be deployed anytime to the
+        production. i.e. the code is always production ready
+        Commonly the latest version is first deployed to a testing or staging system.
+        So the continuous delivery should look like below after the continuous integration happens
+        ================================================================================================================================
+        ||Devloper ==> Code ===> Build ==> Code   ==> TESTS ==> Packages ==> REVIEW/TESTS ==> STAGING ==> Manual Review ==> PRODUCTION|| 
+        ||                                 quality                                                                                    ||
+        ================================================================================================================================                                 
+        So here firtly we have continuous integration in place where, whenever there is a change in a code by a developers
+        the new code chanegs are integrated with the code of other developer in repo and all sorts of tests and code checks
+        are done in order to make sure that code is still working after changes are made and build is fine.
+        
+        Continous Delivery (CD) is a step ahead of continuous integration which make sure that the code not only should be working but also
+        should be ready for deployement all the time, and usually the code is deplyed to the test boxes and staging boxes.
+        once the changes are successful over test and staging boxes, there is a huma intervention required in order to
+        review the code once final time and deply that code manually to production system
+
+    c) Now comes the continuous Deployment which is even way ahead of continous delivery, where the final deployement to
+        production system is also automatic and everything happens at a click of a button.
+
+        ================================================================================================================================
+        ||Devloper ==> Code ===> Build ==> Code   ==> TESTS ==> Packages ==> REVIEW/TESTS ==> STAGING ==> Automatically ==> PRODUCTION|| 
+        ||                                 quality                                                          deployed to               ||
+        ================================================================================================================================
+        So this is called continuous Integration/ continous deployment (CI/CD)
+    d) Advantages of Continuous Integration
+        -> Errors are detected early in the development process
+        -> Reduce integration problems
+        -> allows developers to work faster 
+    e) Advantages of continuous delivery and continous deployed
+        -> Ensures that every change is releasable by testing that it can be deployed
+        -> Reduce the risk of new deployment, as we deploy smaller changes that gets integrates frequently after 
+            every change.
+        -> Delivers value much faster.
+    
+
+
+
+

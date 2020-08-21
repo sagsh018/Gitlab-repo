@@ -1,0 +1,219 @@
+1) In this lecture we are going to see how we can build out local project using the gitlab ci
+2) Whatever steps we took in order to create our project locally we are going to try to do the exact same things 
+    using gitlab ci
+3) Now lets go back to our local project directory and delete the public folder which we created as part of 
+    gatsby build command in order to build the project locally
+    So that we will now write the gitlab-ci.yml file to automate this build process
+    # cd /d/software/gatsby_static_site/static-site
+    # rm -rf public/
+4) Now lets create another file in here named as .gitlab-ci.yml to write the pipeline for build
+    # code .gitlab-ci.yml
+    a) Notice that with the help of this pipeline we are going to build our website in the docker image provided by gitlab-ci
+        So in order for that image to build our website, it has to have node.js and npm installed on it
+        So we are goint to spin up the docker image which already has node.js and npm installed.
+        after searching it on google 
+        we will be using below image in order to have node js already installed along with npm
+        https://hub.docker.com/_/node
+        name of this node is "node" and we can pull it using below command
+        # docker pull node
+        So our initail pipeline would look something like below
+        ================================
+        build website:
+        image: node
+        script:
+            - npm install
+            - npm install -g gatsby-cli
+            - gatsby build
+        ================================
+        Now lets save it and push it to the gitlab repo and this will trigger the pipeline automatically to run with
+        gitlab runner.
+        If you will notice at the top of gitlab runner terminal, you will find that gitlab ci is not pulling default
+        docker image, instead it is pulling the docker image which we have mentioned.
+        Now we can see out build pipeline is successful and we can go and check it by clicking on the CI/CD>pipeline
+        option in the left pane of our project.
+        and also we can check out the gitlab runner terminals as well which indicate the job is successful.
+
+        So we can say that our project(static website) is built successfully and the build is ready to be deployed.
+        but we have missed something here that is, we haven't saved our build artifact which we can use to deploy our
+        website.
+        So in order to do that we have to add artifact tags in our gitlab-ci.yml file as well
+        So it will look like below
+        =====================================
+        build website:
+        image: node
+        script:
+            - npm install
+            - npm install -g gatsby-cli
+            - gatsby build
+        artifacts:
+            paths:
+                - ./public
+        =====================================
+        Now lets save this again and push it to repo
+5) Now we will proceed in our CI pipeline by adding tests to it. but before moving ahead lets understand one things 
+    After the command/Job is executed it returns the exit status based on whether it failed or passed
+    It returns 0 -> if the job succeeds
+    It returns 1-225  -> if the job fails.
+    So in our test we are going to to test just two simple things for now
+    a) the exit code of the previous build job
+    b) the existence of file index.html which is going to have out static website code and search the website keyword
+        inside this file lile "Hello world!"
+        grep -iq "Hello world!" index.html
+        So this is going to grep our required thing from html file and then we will check the status of this command
+        echo $? 
+        if this turn out to be 0 that means our website has required data in it and it is built correctly
+        otherwise test failed.
+    Now lets go ahead and add the test stage in our pipeline.
+    ===================================================
+    stages:
+        - build
+        - test
+
+    build website:
+        stage: build
+        image: node
+        script:
+            - npm install
+            - npm install -g gatsby-cli
+            - gatsby build
+        artifacts:
+            paths:
+                - ./public
+  
+    test website:
+        stage: test
+        script:
+            - grep "Hello world!" ./public/index.html
+            - grep "XXXXXX" ./public/index.html
+    =================================================
+    So here we have added second job stage "test website" and we are testing one correct case and one incorrect case,
+    to make sure whether our code is correct or not. So lets save it and push it to gitlab-ci
+6) So we are good with the above pipeline now, its working as per our expectations.
+    Lets remove the wrong greping case and also make the grep silent.
+    ===================================================
+    stages:
+        - build
+        - test
+
+    build website:
+        stage: build
+        image: node
+        script:
+            - npm install
+            - npm install -g gatsby-cli
+            - gatsby build
+        artifacts:
+            paths:
+                - ./public
+  
+    test website:
+        stage: test
+        script:
+            - grep "Hello world!" ./public/index.html
+    =================================================
+    Also we will make one more modification in test stage, here the default docker image which we are using is ruby image,
+    lets replace it with the small linux minimal image called as alpine.
+    So lets add it in the test stage and check whether we are able to test it with this minimal image also or now
+    ===================================================
+    stages:
+        - build
+        - test
+
+    build website:
+        stage: build
+        image: node
+        script:
+            - npm install
+            - npm install -g gatsby-cli
+            - gatsby build
+        artifacts:
+            paths:
+                - ./public
+  
+    test website:
+        image: alpine
+        stage: test
+        script:
+            - grep -q "Hello world!" ./public/index.html
+    ====================================================
+7) Now lets add one more functionality along with the artifact testing above, i.e. testing the entire website with the 
+    artifact deployed on the docker node image.
+    Here we will be using gatsby to serve a website for us and for that we will be needing docker node image and then,
+    once gatsby serve that website we will use the curl command in order to download that website and from that we
+    will test the same "Hello world!" string again.
+
+    So the gitlab-ci file will look something like now
+    ================================================
+    stages:
+        - build
+        - test
+
+    Build Website:
+        stage: build
+        image: node
+        script:
+            - npm install
+            - npm install -g gatsby-cli
+            - gatsby build
+        artifacts:
+            paths:
+                - ./public
+  
+        Test Artifact:
+            image: alpine
+            stage: test
+            script:
+                - grep -q "Hello world!" ./public/index.html
+
+        Test Website:
+            image: node
+            stage: test
+            script:
+                - npm install 
+                - npm install -g gatsby-cli
+                - gatsby serve 
+                - curl "http://localhost:9000" | grep -q "Hello world!"
+    ===================================================================
+    Now this will work correctly but the command gatsby serve will run the server and website in foreground process and
+    we won't be able to test the curl command.
+
+    So in order to do so we have to learn how to run the command in backgroud first, and we will also add the sleep 
+    to give some time to gatsby server to come up and then we will curl again.
+    So the pipeline will look like below Now
+    =============================================================
+    stages:
+        - build
+        - test
+
+    Build Website:
+        stage: build
+        image: node
+        script:
+            - npm install
+            - npm install -g gatsby-cli
+            - gatsby build
+        artifacts:
+        paths:
+            - ./.cache
+            - ./public
+            - ./node_modules
+  
+    Test Artifact:
+        image: alpine
+        stage: test
+        script:
+            - grep -q "Hello world!" ./public/index.html
+
+    Test Website:
+        image: node
+        stage: test
+        script:
+            - npm install 
+            - npm install -g gatsby-cli
+            - nohup gatsby serve &
+            - sleep 6
+            - curl "http://localhost:9000" | grep -q "Hello world!"
+    =================================================================
+
+
+

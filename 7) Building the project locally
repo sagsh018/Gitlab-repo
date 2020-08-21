@@ -1,0 +1,40 @@
+1) So far we have installed gatsby and created our project locally and manage to start the local development server
+    which has started our local website
+2) But we can't send this localyy created project to peoduction system. So there is a step required in order to make
+    this local project production ready and that will be build process.
+    Build step
+    ==========
+    a) Most of the projects have a production build step
+    b) Developers write code in human readable programming language (like C, Java, Ruby, Javascript), but this needs to
+        be compiled to make it ready for deployment
+    c) The source code need to be further processed in order to make deployment ready to production  server
+    Gatsby Build Step
+    =================
+    a) produces static HTML javascripts files
+    b) CSS/javascripts files are merged and compressed in order to reduce the the website download size
+    c) Command
+        # gatsby build
+        This is going to create another folder inside static-site folder named as "public"
+        and if we notice few last steps of the above build Command
+            =================================================================
+            success Building production JavaScript and CSS bundles - 13.041s
+            success Rewriting compilation hashes - 0.004s
+            success Building static HTML for pages - 1.106s - 1/1 0.90/s
+            =================================================================
+        These steps shows what processing is done in build steps related to javascripts and css files are compiled and
+        bundle is created and static HTML pages are built as well
+        So this creates our production read
+    d) Lets go inside public folder
+        # cd /d/software/gatsby_static_site/static-site/public
+        This contain files like index.html and all the java scripts and CSS file in order to create a website   
+        So is nothing but what is called as "artifact"
+        We can store this artifact some where in artifact repository like nexus and then use it from there in order to
+        deploy our static website.
+        
+Note 
+====
+We have docker container used in gitlab ci in order to have small virtual machine image to spin up complete our task
+and then get destroyed
+so in order to test our project we can simply get one such docker container using gitlab ci and get node.js installed
+along with the gatsby and get the website hosted for testing.
+we will follow this technique in later lectures.

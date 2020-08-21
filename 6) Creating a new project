@@ -1,0 +1,9 @@
+1) So here we want to develop a new static website and for this we are going to make use of a open source
+    tool named as gatsby
+    https://www.gatsbyjs.com/docs/quick-start/
+    So from this site we are going to install this gatsby tool and since it is a npm tool hence we will be using below
+    commands
+    a) # npm install -g gatsby-cli
+    b) Then we will crate new website
+        # gatsby new static-site https://github.com/gatsbyjs/gatsby-starter-hello-world
+        "static-site" is a website name 

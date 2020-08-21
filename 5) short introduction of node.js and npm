@@ -14,9 +14,16 @@ intallation of node.js
 =======================
 1) download the msi installer from below url
     https://nodejs.org/en/download/
+    instructions to follow
+    http://nodesource.com/blog/installing-nodejs-tutorial-windows/ 
 2) double click on the installer downloaded and open up the installation wizard and follow the instructions
     intall location 
     /c/Users/Sagar/projects/Gitlab-repo
     we are not installing extra softwares and will take care of dependencies later from below link
     https://github.com/nodejs/node-gyp#on-windows
+    restart the VScode and test the installation
+    # node -v 
+3) Finally we will update the version of npn 
+    npm install npm --global
+
     

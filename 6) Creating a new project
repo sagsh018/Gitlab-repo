@@ -7,3 +7,28 @@
     b) Then we will crate new website
         # gatsby new static-site https://github.com/gatsbyjs/gatsby-starter-hello-world
         "static-site" is a website name 
+    c) Now lets go inside the static-site
+        # cd /d/software/gatsby_static_site/static-site
+    d) The start the local development server and that can be done by using below command
+        # gatsby develop
+        This will bring up our local http server to host this static site and we can open that site in our browser
+        using ==> http://localhost:8000/
+        This will open up the hello world page.
+2) Now that we have created out project in our local machine we are going to mirror the same on gitlab as well
+3) So lets got to the gitlab
+    https://gitlab.com/
+    and click on new project
+    give the name of a project as "My statis website"
+    give the description and click on create project
+4) Now as soon as new project is created on gitlab we can push the project on our local machine at below location
+    to the gitlab
+    location of local Git repo for static website project
+    /d/software/gatsby_static_site/static-site
+    # cd /d/software/gatsby_static_site/static-site
+    if we will check the status og git here we will see we are currently working with clean git repo and we don't
+    have to do anything to setup local repo. 
+    we just have to do is to add the remote repo to our local repo.
+    # git remote add origin https://gitlab.com/sagsh018/my-static-website.git
+    Then we can just push our local repo to gitlab using below push command
+    # git push -u origin master.
+    

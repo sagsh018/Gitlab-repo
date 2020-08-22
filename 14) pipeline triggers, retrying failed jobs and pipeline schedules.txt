@@ -1,0 +1,20 @@
+1) In this lecture we are going to have a look at the pipeline triggers, how we can retry the failed jobs and how we 
+    can start the pipeline without doing any commit.
+2) Suppose you pipeline consist of 4 jobs and the last job has failed after completing rest of the jobs succssfully.
+    So there is no need to start the pipeline all over again, we can give is a retry to that last failed job by using the 
+    retry button with every job on the pipeline page.
+    Same goes with the pipeline as well.
+    on the pipeline page there is a symbol of retrying the pipeline on the right had side correspinding to the pipeline.
+3) There could be a case when we want to run the pipeline without performing any commit or changeing any code.
+    on the main page of the project, mclick on the pipeline option from the lefthand side pane and on the pipeline page
+    on the right most top corner there is a button called as "Run Pipeline"
+    on this page you can select the branch against which you want to run the pipeline and also you can provide some 
+    variables if you want  and click on run pipeline at the end of page.
+4) Consider another senerio, where you want to schedule the pipeline run.
+    on the main page of project, go to left pane, under CI/CD option there is a option of schedules. Click on schedules,
+    This will take you to the schedule page
+    on schedule page click on "New Schedule", and provide the branch information and also the timing information by using
+    available options or by using cron expressions.
+    You can also give the description as well
+    then click on save pipeline schedule at the end of page.
+    

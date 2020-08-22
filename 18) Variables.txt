@@ -1,0 +1,96 @@
+1) In this lecture we are going to see how we can define our own variables in gitlab CI
+2) So we can use the varibles in our pipelines wherever we are mentioning the same thing again and again.
+3) Now we have already defined two variables before while using surge to login to the surege environment
+    a) SURGE_LOGIN
+    b) SURGE_TOKEN
+    So we can create our own tokens by going to the left pane>settings>CI CD> variables
+    So can not only store our secrets here, we can even store the things which we are duplicating in our pipeline, like the
+    domain name URL's 
+4) We can define the variables at the job level as well as at the global level. In our case we are going to define them
+    at global level in our pipeline.
+    So lets go and modify our piprline.
+    Notice that we are adding our variables this time in our pipeline file and not on the gitlab interface under
+    variable section
+    So our pipeline looks like below
+    image: node
+
+stages:
+  - build
+  - test
+  - staging deploy 
+  - staging test 
+  - production deploy
+  - production test
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+  
+variables:
+  STAGING_DOMAIN: apmqa.surge.sh
+  PRODUCTION_DOMAIN: apm.surge.sh
+
+Build Website:
+  stage: build
+  script:
+    - echo $CI_COMMIT_SHORT_SHA
+    - npm install
+    - npm install -g gatsby-cli
+    - gatsby build
+    - sed -i "s/%%VERSION%%/$CI_COMMIT_SHORT_SHA/" ./public/index.html
+  artifacts:
+    paths:
+      - ./.cache
+      - ./public
+      - ./node_modules
+  
+Test Artifact:
+  image: alpine
+  stage: test
+  script:
+    - grep -q "Hello world!" ./public/index.html
+
+Test Website:
+  stage: test
+  script:
+    - npm install 
+    - npm install -g gatsby-cli
+    - nohup gatsby serve &
+    - sleep 6
+    - curl "http://localhost:9000" | grep -q "Hello world!"
+
+Staging Deploy:
+  stage: staging deploy
+  environment:
+    name: staging
+    url: http://$STAGING_DOMAIN
+  script:
+    - npm install -g surge 
+    - surge --project ./public --domain $STAGING_DOMAIN
+  
+Staging Test:
+  image: alpine
+  stage: staging test
+  script:
+    - apk add curl 
+    - curl http://$STAGING_DOMAIN/ | grep -q "Hello world!"
+    - curl http://$STAGING_DOMAIN/ | grep -q "$CI_COMMIT_SHORT_SHA"
+
+Production Deploy:
+  stage: production deploy
+  environment:
+    name: production
+    url: http://$PRODUCTION_DOMAIN
+  script:
+    - npm install -g surge 
+    - surge --project ./public --domain $PRODUCTION_DOMAIN
+
+Production Test:
+  image: alpine
+  stage: production test
+  script:
+    - apk add curl 
+    - curl http://$PRODUCTION_DOMAIN/ | grep -q "Hello world!"
+    - curl http://$PRODUCTION_DOMAIN/ | grep -q "$CI_COMMIT_SHORT_SHA"
+    

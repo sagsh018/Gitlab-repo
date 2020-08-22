@@ -1,0 +1,176 @@
+1) In this lecture we are going to take a look at the merge requests and branches, so that by using these we can 
+    improve our workflow of gitlab CI.
+2) Purpose of using branches
+    a) Avoid breaking the master branche
+    b) Breaking the master branche is costly and should be avoided
+    c) To ensure that our master branche which is ultimately going to be used should always be ready for deployment and 
+        hence achiving the continous delivery and deployment.
+3) How branches can be used
+    a) Each feature/task/bugfix could be done on a separate branch 
+    b) Once the work is done on the separate branch and tested and reviewed, it can be merged back into the master branch.
+4) Branching models
+    a) The most known stragergy is using Gitflow
+    b) You are free to use with the model suits you the best
+    c) Just try to avoid using one branch . i.e. master.
+5) So we will go ahead and add the functionality in our pipeline to have branches and run on them our pipeline. but there 
+    are some cases where you do not want to run the part of a pipeline like production deploy in our case to run in the 
+    branch. we only want them to run in case of master branch. so to add this kind functionality lets modify the pipeline as 
+    below
+                image: node
+
+                stages:
+                    - build
+                    - test
+                    - staging deploy 
+                    - staging test 
+                    - production deploy
+                    - production test
+
+                cache:
+                key: ${CI_COMMIT_REF_SLUG}
+                paths:
+                    - node_modules/
+  
+                variables:
+                STAGING_DOMAIN: apmqa.surge.sh
+                PRODUCTION_DOMAIN: apm.surge.sh
+
+                Build Website:
+                stage: build
+                script:
+                    - echo $CI_COMMIT_SHORT_SHA
+                    - npm install
+                    - npm install -g gatsby-cli
+                    - gatsby build
+                    - sed -i "s/%%VERSION%%/$CI_COMMIT_SHORT_SHA/" ./public/index.html
+                artifacts:
+                    paths:
+                    - ./.cache
+                    - ./public
+                    - ./node_modules
+  
+                Test Artifact:
+                image: alpine
+                stage: test
+                script:
+                    - grep -q "Hello world!" ./public/index.html
+
+                Test Website:
+                stage: test
+                script:
+                    - npm install 
+                    - npm install -g gatsby-cli
+                    - nohup gatsby serve &
+                    - sleep 6
+                    - curl "http://localhost:9000" | grep -q "Hello world!"
+
+                Staging Deploy:
+                stage: staging deploy
+                environment:
+                    name: staging
+                    url: http://$STAGING_DOMAIN
+                only:
+                    - master
+                script:
+                    - npm install -g surge 
+                    - surge --project ./public --domain $STAGING_DOMAIN
+  
+                Staging Test:
+                image: alpine
+                stage: staging test
+                only:
+                    - master
+                script:
+                    - apk add curl 
+                    - curl http://$STAGING_DOMAIN/ | grep -q "Hello world!"
+                    - curl http://$STAGING_DOMAIN/ | grep -q "$CI_COMMIT_SHORT_SHA"
+
+                Production Deploy:
+                stage: production deploy
+                environment:
+                    name: production
+                    url: http://$PRODUCTION_DOMAIN
+                only:
+                    - master
+                script:
+                    - npm install -g surge 
+                    - surge --project ./public --domain $PRODUCTION_DOMAIN
+
+                Production Test:
+                image: alpine
+                stage: production test
+                only:
+                    - master
+                script:
+                    - apk add curl 
+                    - curl http://$PRODUCTION_DOMAIN/ | grep -q "Hello world!"
+                    - curl http://$PRODUCTION_DOMAIN/ | grep -q "$CI_COMMIT_SHORT_SHA"
+    we can clearly see that in jobs for production deply and staging deploy along with there tests we have mentioned 
+        only:
+            - master.
+    lets save it and commit, and push it to the gitlab
+    a) go to our project main page, on left window pane select repository and from that select branches, click on it
+        so on the branches page you will just see master branche, click on new branche on this page
+    b) once you have new branch page, give the branch name. So let say we want to give new title to our branch and 
+        we will name it as feature branch "feature/newtitle"
+        and also notice that we are going to create this branch from master.
+    c) click on create branch in the bottom, with this the new branch will created with the same project, and the pipeline
+        will automatically triggered for this action. but if this time you will go and check the pipeline page you will 
+        find only three jobs for this branch, as we have modified the pipeline to run deploy and test jobs to run only for
+        master.
+    d) now once these three jobs works properly for this feature branch then we can raise a merge request and get this
+        feature branch merged into our master branch.
+6) merge requests
+===================
+    a) A merge request is a good way to visualize new changes that are about to be made in master and see the status 
+        of the pipeline for a specific branch
+    b) it gices change to other developers the possibility of giving their feedback regarding the fixture/fix before it
+        gets merged into master.
+7) Merge request
+    a) from the main page of our project, at the left side pane, select settings, from settings select repository
+    b) from repository page select protected branches. expand that
+    c) once expended go down and you will find out the master branch, modify its setting by marking alloed to push 
+        as no one. so now no one will be able to push into master directly.
+    d) This setup will make sure that every change will go into prosuction with the help of only feature branch,
+    e) Now from the main page> left sire> select settings> general> expand merge requests> select fast forward
+        merge( in this case there will be no commit in git logs )
+        Also if you will go down you will find merge checks and over there check the box for "pipelines must succeed.
+    f) Also you can mark for all discussions should be resolved as well if you are doing any code review kind of a thing,
+    g) click on save after that
+8) First merge request
+=======================
+    a) So we have already created a new branch named as feature/new_title and as soon as we saved it, our pipeline
+        ran for that branch. but its a short pipeline. now our branch is ready for merge,
+    b) Suppose we want to make some changes to our node.js file. so lets just pull that feature/new_title branch to
+        our local git by using below command
+        # git pull origin feature/new_title
+        Then switch to that branch 
+        # git checkout feature/newtitle
+        then just make changes to the index.js file and save and commit it and push it to the feature branch
+        # git add -A 
+        # git commit -m "adding changes to feature branch"
+        # git push -u origin feature/new_title
+        This will trigger again the short pipeline under feature branch
+        once this pipeline succeeds we are ready to raise our first merge request in order to merge these changes to 
+        master branch.
+    c) Now as soon as you push your changes to the feature branch and the pipeline also suceeded, if you will go back to
+        the main page of project and select the feature branch, you will see the option of create a merge request on right
+        hand site of the project page
+        click on that button and it tiwll take you to the "New merge request page" then over there the title will be populated
+        with the commit message,, you can put in the description . scroll down and check the box for delete the source branch
+        when merge is accepted.
+         and click on submit the merge request
+    d) This will open a page to approve the merge request, notice that this page will have some information about the 
+        feature branch, like the status of the latest pipeline run, then there is optional approval, then there is a merge
+        button 
+        click on approve
+        click on merge, as this is fast forward merge, hence will happen without commit message and it will also delete 
+        the source branch which is our feature branch
+        and this will automatically merge the changes to master branch and the pipeline in the master branch will start 
+        running
+        and over there you will also see the environment where that master branch will be going to deploy the changes
+        we can stop production from side button as well
+    e) there is a close the merge request option at the bottom, fill out the descriptionn and close the mrege request
+
+
+

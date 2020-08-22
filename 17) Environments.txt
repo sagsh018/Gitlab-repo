@@ -1,0 +1,190 @@
+1) Here we are going to add another environment in our Continous deployment pipeline i.e. staging
+2) Now as we have worked on below CI/CD pipe line till now in this course
+    ================================================================================================================================
+    ||Devloper ==> Code ===> Build ==> Code   ==> TESTS ==> Packages ==> REVIEW/TESTS ==> STAGING ==> Manual Review ==> PRODUCTION|| 
+    ||                                 quality                                                                                    ||
+    ================================================================================================================================
+    We can see that our CI pipe line includes almost everything, like we have our code, we have build, we have code quality
+    and tests as well and then our package is ready at the end.
+    But if we come to our CD pipeline, we can see that we only have one type of environment to deply that is production.
+    So this makes DC process bit difficult, as we are directly deploying on the production server and we don't have any
+    staging environment in between as mentioned in the above pipeline diagram.
+    Also since we are directly deploying the changes to production, we are not getting a chance to review the changes that 
+    we have made on a similar system as that of production one.
+
+    So to over come the difficilties of CD pipeline we are going to add another environment called as staging in our 
+    pipeline.
+    So lets go our our pipeline and make modifications over there
+    =====================================================================================
+    image: node
+
+    stages:
+        - build
+        - test
+        - staging deploy 
+        - staging test 
+        - production deploy
+        - production test
+
+    cache:
+        key: ${CI_COMMIT_REF_SLUG}
+        paths:
+            - node_modules/
+
+    Build Website:
+        stage: build
+        script:
+            - echo $CI_COMMIT_SHORT_SHA
+            - npm install
+            - npm install -g gatsby-cli
+            - gatsby build
+            - sed -i "s/%%VERSION%%/$CI_COMMIT_SHORT_SHA/" ./public/index.html
+        artifacts:
+            paths:
+            - ./.cache
+            - ./public
+            - ./node_modules
+  
+    Test Artifact:
+        image: alpine
+        stage: test
+        script:
+            - grep -q "Hello world!" ./public/index.html
+
+    Test Website:
+        stage: test
+        script:
+            - npm install 
+            - npm install -g gatsby-cli
+            - nohup gatsby serve &
+            - sleep 6
+            - curl "http://localhost:9000" | grep -q "Hello world!"
+
+    Staging Deploy:
+        stage: staging deploy
+        script:
+            - npm install -g surge 
+            - surge --project ./public --domain Smartadvisorqa.surge.sh
+  
+    Staging Test:
+        image: alpine
+        stage: staging test
+        script:
+            - apk add curl 
+            - curl http://digitapadwa.surge.sh/ | grep -q "Hello world!"
+            - curl http://digitapadwa.surge.sh/ | grep -q "$CI_COMMIT_SHORT_SHA"
+
+    Production Deploy:
+        stage: production deploy
+        script:
+            - npm install -g surge 
+            - surge --project ./public --domain Smartadvisor.surge.sh
+
+    Production Test:
+        image: alpine
+        stage: production test
+        script:
+            - apk add curl 
+            - curl http://digitapadwa.surge.sh/ | grep -q "Hello world!"
+            - curl http://digitapadwa.surge.sh/ | grep -q "$CI_COMMIT_SHORT_SHA"
+    ==================================================================================
+3) So as we can clearly see from the above pipeline, we have added two stages named as staging deply and staging test.
+    so now we need not to deploy the code directly to the production and also this will give us the chance to review
+    and test the code on similar system as that of production. These kind of review tests are usually called as integration
+    tests, where the whole software is available to test and replicate the production environment before deploying it to
+    production code.
+4) Now luckily for us we have concept of environments in gitlab
+    a) Environemts allow us to control the continuous Integration and continuous deployment pipeline.
+    b) They helps us in easily tracking the deployments
+    c) So that you will know exectly what was deployed  and on which environment
+    d) And this help in having full history of our deployments.
+5) We need small modification in order to tag our jobs to environments. lets modify our pipeline a bit again
+        image: node
+
+stages:
+  - build
+  - test
+  - staging deploy 
+  - staging test 
+  - production deploy
+  - production test
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+
+Build Website:
+  stage: build
+  script:
+    - echo $CI_COMMIT_SHORT_SHA
+    - npm install
+    - npm install -g gatsby-cli
+    - gatsby build
+    - sed -i "s/%%VERSION%%/$CI_COMMIT_SHORT_SHA/" ./public/index.html
+  artifacts:
+    paths:
+      - ./.cache
+      - ./public
+      - ./node_modules
+  
+Test Artifact:
+  image: alpine
+  stage: test
+  script:
+    - grep -q "Hello world!" ./public/index.html
+
+Test Website:
+  stage: test
+  script:
+    - npm install 
+    - npm install -g gatsby-cli
+    - nohup gatsby serve &
+    - sleep 6
+    - curl "http://localhost:9000" | grep -q "Hello world!"
+
+Staging Deploy:
+  stage: staging deploy
+  environment:
+    name: staging
+    url: http://apmqa.surge.sh
+  script:
+    - npm install -g surge 
+    - surge --project ./public --domain apmqa.surge.sh
+  
+Staging Test:
+  image: alpine
+  stage: staging test
+  script:
+    - apk add curl 
+    - curl http://apmqa.surge.sh/ | grep -q "Hello world!"
+    - curl http://apmqa.surge.sh/ | grep -q "$CI_COMMIT_SHORT_SHA"
+
+Production Deploy:
+  stage: production deploy
+  environment:
+    name: production
+    url: http://apm.surge.sh
+  script:
+    - npm install -g surge 
+    - surge --project ./public --domain apm.surge.sh
+
+Production Test:
+  image: alpine
+  stage: production test
+  script:
+    - apk add curl 
+    - curl http://apm.surge.sh/ | grep -q "Hello world!"
+    - curl http://apm.surge.sh/ | grep -q "$CI_COMMIT_SHORT_SHA"
+
+So if we go to gitlab and see the pipeline page we will not find any specific difference over there as the environment we 
+have added will not appear over there
+go to the left pane and hover the mouse over the operation option and from there choose Environment page
+Here on this you can see what all environments have gone live. 
+Also there are commits mentioned to check which commit did the changes and also there are button for live environment 
+on right hand side which opens up the URL which we have given in the job of deploy in the browser.
+
+
+
+
+

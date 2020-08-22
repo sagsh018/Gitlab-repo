@@ -1,0 +1,64 @@
+1) Here we are going to learn how to configure some jobs to triggered manually only, as it might be risky if we keep them
+    for auto triggering
+2) Lets see our Continuous Deployment pipeline
+        ================================================================================================================================
+        ||Devloper ==> Code ===> Build ==> Code   ==> TESTS ==> Packages ==> REVIEW/TESTS ==> STAGING ==> Manual Review ==> PRODUCTION|| 
+        ||                                 quality                                                                                    ||
+        ================================================================================================================================
+    So here we can see that till staging environment we have automatic deployment, but after the STAGING environment 
+    deployment we have another job of manual review, so here we will need someone to manually review the deployment and
+    trigger them 
+    So till now we have fully automatic continuous deployment till the production environment. So in this lecture we are 
+    going to add the manual intervention.
+3) To add this manual intervention we are going to add the step in our production deploy job
+    ========================================================
+    Production Deploy:
+  stage: production deploy
+  environment:
+    name: production
+    url: http://$PRODUCTION_DOMAIN
+  when: manual
+  script:
+    - npm install -g surge 
+    - surge --project ./public --domain $PRODUCTION_DOMAIN
+    ==========================================================
+    So we can save after making this modification and push it to the gitlab in order to check whether this is going to 
+    us to manually trigger the production deploy job
+    So after the pipeline run we can see that on the pipeline page we see that our jobs ran automatically till staging
+    deploy and after that production deploy stage has stuck waiting for manual intervention and after the production
+    testing job didn't wait and it ran and failed 
+
+    We can see this in environment list as well, where staging environemt will be seen as deployed with latest commit but
+    not the production one yet.
+
+    So on the pipeline page, we can click on the play button on the production deployment job icon to trigger the job
+    manually.
+    so once we triggered the production deploy it completed and passed, but we can see that production testing is still 
+    showing as failed 
+    we can rerun that as well manually and it eill pass ultimately as well.
+
+    ut notice we don't want this kind of functionality. if want to manually trigger the production deployment job then
+    testing job should also wait and whwn we trigger production deployment then after completion of that testing job
+    should start automatically.
+
+    So to add this kind of funcationality lets go back to our pipeline and make some more modifications
+            Production Deploy:
+                stage: production deploy
+                environment:
+                    name: production
+                    url: http://$PRODUCTION_DOMAIN
+                when: manual
+                allow_failure: false
+                script:
+                    - npm install -g surge 
+                    - surge --project ./public --domain $PRODUCTION_DOMAIN
+
+        so we have added this line here "allow_failure: false" this will exactly the same funtionality we want.
+4) Now if you will run your pipeline again, we will see that the production deploy stage will be waiting for manual
+    trigger and the production test job is not autot triggered and the entire pipeline status is "blocked"
+    So click on production deploy job to manually run it and once this completes the production test pipeline will also
+    start automatically if the prod deploy job succeeds
+
+5) one last thing so after this lecture of demo on manual intervention we are going to remove the manual triggerring 
+    thing from the pipeline alson with the line we have added above the the prod deploy job will look again the same
+    

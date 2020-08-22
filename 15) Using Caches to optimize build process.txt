@@ -1,0 +1,58 @@
+1) As we have taken a look at our build job that has taken lot of time to create a build because it had to download lots
+    of dependencies and because of that it takes up the significat time of pipeline run
+2) If you notice other CI servers like Jenkins : It does not deletes the temporary data after the execution of the job 
+    finishes, which results in better execution time.
+3) Now this delay in build job or any other job which require dependencies is happening in gitlab because to run a job  
+    in gitlab we have to follow the following steps:
+    a) Delegate the job to gitlab runner
+    b) everytime it starts with the clean repo and download & start fresh docker image
+    c) Clone the repo 
+    d) Install required dependencies 
+    e) run the actual steps
+    f) Save the results (if needed)
+4) Now in case of gitlab also we can get over with this dis advantage by including the concept called as cache 
+    We can instruct Gitlab to hold on the specified material and do not delete it as we might want to use it later.
+5) Now in our case of gatsby site, our all the dependencies are stored under the folder named as "node_modules". So this
+    is the folder which we might want to cache.
+    So lets go ahead an change our pipeline a abit
+    So we can add the below cache tag in our pipeline:
+    =============================
+    cache:
+        key: ${CI_COMMIT_REF_SLUG} ==> Notice that we can also mentioned string of our own choice as well.
+        paths:
+            - node_modules/
+    =============================
+    Notice that with the help of key, every branch will use same cache every time
+    Now this cache module can be added inside some job as well like a build job, or it can be added globally for entire
+    pipeline. so we are adding it on top globally and not part of any job.
+    So the things to notice here is that it has two things:
+        a) Key : ${CI_COMMIT_REF_SLUG}
+            This gives reference to the branch which we are running this pipeline for. so in our case we have only master
+            branch so this will be replaced by master,
+        b) paths:
+            This is to specify which folder we want cache to store after finishing the job.
+6) So lets save and push our pipeline and observe the logs as below 
+    a) if we observe the build job, first we ot these lines ,before it has started the process of npm install
+        Checking cache for master...
+            FATAL: file does not exist                         
+            Failed to extract cache
+        This shows that as soon as gitla runner seen the cache tag, it has tried to check cache but as this job has just 
+        and no build is done yet, therefore it has complained that cache does not exist.
+        again if you see your build job at the end, after the buold process completes, the below lines shows that job is 
+        creating the cache now and uploading node_modules as part of creating cache in a folder and zipping it.
+            Creating cache master...
+            node_modules/: found 51088 matching files and directories 
+            Uploading cache.zip to https://storage.googleapis.com/gitlab-com-runners-cache/project/20655284/master 
+            Created cache
+7) Now since we have a cache uploaded from our previos build job and we already have node_modules folder present as part 
+    our cache, lets go and check our one of the test website job where we are again doing king of npm install, gatsby install
+        Checking cache for master...
+        Downloading cache.zip from https://storage.googleapis.com/gitlab-com-runners-cache/project/20655284/master 
+        Successfully extracted cache
+    So we cansee that this job has checked for the cache first before downloading the dependencies and it got that
+    and again at the end of the job it will create the cache.
+    This will be done by all the jobs as we have defined cache globally out of all the jobs for all the jobs.
+8) So we can see that this time pipeline has generated the cache and checked the cache for every job. Now lets run our
+    pipeline once again from the run pipeline button on the gitlab ci without making any commit. this will improve
+    time but just by little bit
+9) if you want to delete the cache you can do that by using button clear cache, next to run pipeline without commit.

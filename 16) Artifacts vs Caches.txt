@@ -1,0 +1,10 @@
+Artifacts:
+===========
+1) These are usually the output of the build tools
+2) in Gitlab-ci also they are used to store some compiled portion of a build job.
+3) They can also be seen as passing the data between different stages.
+
+Caches
+========
+1) They are not used to store build results 
+2) they are always used to store the project dependencies,

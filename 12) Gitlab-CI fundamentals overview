@@ -1,0 +1,4 @@
+1) So we will continue imporving our existing pipeline.
+2) Here in this section we are going to focus on improving the execution speed, improving the general git workflow,
+    adding environments(prod, staging, review) sothat we can test our code. and then we will also have a look at how we
+    can add some manual steps to our pipeline.

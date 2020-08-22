@@ -1,0 +1,97 @@
+1) So here we are going to take a look how to use the pre defined environment variables when using gitlab-ci
+2) Gitlab comes with lot of predefined environment variables that we can use. Below is a link which has all the information
+    about the pre defined environment variables.
+    https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+3) For example, one of the pre defined environment variable could be "CI_COMMIT_SHORT_SHA" which basically gives the first
+    8 digits of the hash generated to identify the commit. so with the help of this we can easily identify which commit
+    is responsible for the current version of the website on internet.
+4) Let go ahead and include this Pre defined environment variable("CI_COMMIT_SHORT_SHA") and try to embed version number
+     in our website
+     Below are the steps that need to be takes in order to use this predefined environment variable
+     a) First we will make modifications in our build step of the pipeline, because this is a place where the website
+        is built and artifacts are uploaded
+     b) So firstly we will display the value for this predefined env variable using below command as part of script in
+        build step
+        echo $CI_COMMIT_SHORT_SHA
+     c) Second this to notice is, there is a file named as index.js which is at the following locations
+        D:\software\gatsby_static_site\static-site\src\pages\index.js
+        and it has following content after modifications
+        ======================================================================
+        import React from "react"
+
+        export default function Home() {
+            return <div>Hello world! This is commit number %%VERSION%%</div>
+        }
+        ======================================================================
+        Now this is the java script file which is reponsible to create the index.html website page in our project folder
+        ./public.
+        and as we have introduce a kind of marker inside index.js file, so when this JS file create the index.html after 
+        "gatsby build" step, its going to have same marker in that file as well.
+        but then we are using sed command in order to replace this %%VERSION%% marker in index.html file with the commit
+        hash using our pre defined environment variable
+        sed -i "s/%%VERSION%%/$CI_COMMIT_SHORT_SHA/" ./public/index.html
+        save the index.js file after modifications and also the gitlab-ci file which looks like as below
+        =================================================================
+        image: node
+
+        stages:
+            - build
+            - test
+            - deploy
+            - testdeploy
+
+        Build Website:
+            stage: build
+            script:
+                - echo $CI_COMMIT_SHORT_SHA
+                - npm install
+                - npm install -g gatsby-cli
+                - gatsby build
+                - sed -i "s/%%VERSION%%/$CI_COMMIT_SHORT_SHA/" ./public/index.html
+            artifacts:
+                paths:
+                - ./.cache
+                - ./public
+                - ./node_modules
+  
+        Test Artifact:
+            image: alpine
+            stage: test
+            script:
+                - grep -q "Hello world!" ./public/index.html
+
+        Test Website:
+            stage: test
+            script:
+                - npm install 
+                - npm install -g gatsby-cli
+                - nohup gatsby serve &
+                - sleep 6
+                - curl "http://localhost:9000" | grep -q "Hello world!"
+
+        Deploy Website:
+            stage: deploy
+            script:
+                - npm install -g surge 
+                - surge --project ./public --domain digitapadwa.surge.sh
+
+        Test Deploy:
+            image: alpine
+            stage: testdeploy
+            script:
+                - apk add curl 
+                - curl http://digitapadwa.surge.sh/ | grep -q "Hello world!"
+        ===================================================================================
+        one thing to notice here is that since we have not modified the same data in all the javascript files, so this
+        version data will appear on the website just for couple of seconds and after that it will be displayed as
+        %%VERSION%%
+        This can be corrected after correcting the configuration completely
+5) Now lets do one more step and test our version as well as part of testing the website
+    Test Deploy:
+        image: alpine
+        stage: testdeploy
+        script:
+            - apk add curl 
+            - curl http://digitapadwa.surge.sh/ | grep -q "Hello world!"
+            - curl http://digitapadwa.surge.sh/ | grep -q "$CI_COMMIT_SHORT_SHA"
+    So this last line added is pert of testing the environment variable

@@ -1,0 +1,140 @@
+1) Now we are going to make use of our knowledge of surge, environment variables and gitlab ci we will try to deploy our 
+    site automatically.
+2) So lets go ahead and modify our gitlab-ci file and it should look as below
+    ==========================================================
+    image: node
+
+    stages:
+        - build
+        - test
+        - deploy
+
+    Build Website:
+    stage: build
+    script:
+        - npm install
+        - npm install -g gatsby-cli
+        - gatsby build
+    artifacts:
+        paths:
+        - ./.cache
+        - ./public
+        - ./node_modules
+  
+    Test Artifact:
+    image: alpine
+    stage: test
+    script:
+        - grep -q "Hello world!" ./public/index.html
+
+    Test Website:
+    stage: test
+    script:
+        - npm install 
+        - npm install -g gatsby-cli
+        - nohup gatsby serve &
+        - sleep 6
+            - curl "http://localhost:9000" | grep -q "Hello world!"
+
+    Deploy Website:
+     stage: deploy
+    script:
+        - npm install -g surge 
+        - surge --project ./public --domain digitap.surge.sh
+    ====================================================================
+    So we can see couple of things here.
+    a) we have added the image as node by default for all the jobs untill it is separately specify in the job itself, like
+        alpine for test a artifact job has. So all the jobs are now going to use node docker image except test a artifact
+        job.
+    b) We have added another stage named as "deploy"
+    c) We have added new job named as "Deploy Website"
+        Now during this job run we will try to deploy our project which has been built using build job to surge. So  
+        don't need to install gatsby-cli, what we need is just the surge
+        hence we have installed surge using npm install. then we hav tried to deploy our project using the surge command,
+        but this time we have provided the project location in the command itself, which  is nothing but the public folder
+        artifact created by the build job and followed by un used domain name: to get that domain use the following URL 
+        https://www.dotomator.com/web20.html,
+        Also notice that we haven't given the user name and password in order to login to surge, because when durge command
+        is going to run in the pipeline run its going to search the username and password in the environment variables
+        which we have already saved.
+    d) So thats it, lets save this and push it to gitlab, the deploy stage at the end creates this
+        ============================================================================================================
+        $ surge --project ./public --domain digitap.surge.sh
+        (node:21) Warning: Accessing non-existent property 'padLevels' of module exports inside circular dependency
+        (Use `node --trace-warnings ...` to show where the warning was created)
+        Running as ss0315345@gmail.com (Student)
+            project: ./public
+                domain: digitap.surge.sh
+                 IP: 138.197.235.123
+            Success! - Published to digitap.surge.sh
+        Job succeeded    
+        =============================================================================================================
+5) So finally we can use the following Domanin in order to get our static site
+    digitap.surge.sh
+6) one final thing here is that we have used a command line toll named as "surge" here which is relying on environment
+    variables in order to get the email and token.
+    So we have to define the environment variable exactly the same way surge is expecting(we can get this info from surge
+    documentation), so that surge can identify and use them at the time of pipeline run.
+
+Assignment
+===========
+Let's extend the pipeline and add a new stage.
+
+== DO ==
+
+- add a new stage called "deployment tests".
+
+- create a new job called "test deployment"
+
+- download the first page of the website and search for a specific string (you can use the curl command)
+
+So the new gitlab-ci file will look like below
+========================================================================
+image: node
+
+stages:
+  - build
+  - test
+  - deploy
+  - testdeploy
+
+Build Website:
+  stage: build
+  script:
+    - npm install
+    - npm install -g gatsby-cli
+    - gatsby build
+  artifacts:
+    paths:
+      - ./.cache
+      - ./public
+      - ./node_modules
+  
+Test Artifact:
+  image: alpine
+  stage: test
+  script:
+    - grep -q "Hello world!" ./public/index.html
+
+Test Website:
+  stage: test
+  script:
+    - npm install 
+    - npm install -g gatsby-cli
+    - nohup gatsby serve &
+    - sleep 6
+    - curl "http://localhost:9000" | grep -q "Hello world!"
+
+Deploy Website:
+  stage: deploy
+  script:
+    - npm install -g surge 
+    - surge --project ./public --domain digitapadwa.surge.sh
+
+Test Deploy:
+  image: alpine
+  stage: testdeploy
+  script:
+    - apk add curl 
+    - curl http://digitapadwa.surge.sh/ | grep -q "Hello world!"
+========================================================================

@@ -1,0 +1,32 @@
+1) So till now we have our static website built and tested successfully. Now we want to deply it somewhere
+2) We are going to make use of "surge" in order to deploy our website
+    SURGE 
+    ======
+    It is used for static web publishing for front-end Developers
+    It is simple, single-command web publishing. it publish the HTML, CSS, and JS for free, without leaving the command line.
+    What is surge.sh 
+    ================
+    a) Cloud plateform for serverless deployment
+    b) Easy to use and configure
+    c) Simple deployment process
+    d) Ideal for static websites
+3) So in order to use surge on our local system we have to do couple of steps.
+    a) We should be having node.js installed. Which we already have under D:\software location.
+    b) Install surge by using npm install 
+        # npm install -g surge 
+        notice we are going to install this in below location
+        /d/software/gatsby_static_site/static-site/public
+    c) once it is installed we can just type below command to enter surge console
+        # surge
+        This is going to ask us the email and password in order to create account
+        email : ss0315345@gmail.com
+        password : Ishwarusmay19922005
+        Then is is going to ask us the project location, we are going to select below location
+            D:\software\gatsby_static_site\static-site\public\
+        Hit enter
+        Then it is going to give us the domain address through which we can access our website
+        shaky-art.surge.sh
+        Hit enter again
+        And thats all, it has pblished our site on "shaky-art.surge.sh"
+        we can open this Domain in our web browser in order to see our static site
+        
